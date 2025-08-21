@@ -3,7 +3,7 @@
 
 ## Description
 
-NickBot is a lightweight Discord bot designed to demonstrate custom logging, message handling, and fun interactive behavior inside a Discord server.
+DiscordBot is a lightweight Discord bot designed to demonstrate custom logging, message handling, and fun interactive behavior inside a Discord server.
 
 The bot can:
 
@@ -25,7 +25,7 @@ You can add badges here (build status, code coverage, Python version support, et
 
 ## Visuals
 
-Screenshots or terminal session GIFs can be included here if desired. For example, a screenshot of NickBot responding in a channel.
+Screenshots or terminal session GIFs can be included here if desired. For example, a screenshot of DiscordBot responding in a channel.
 
 ---
 
@@ -163,7 +163,7 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 
 ```python
 # config.py
-# Example configuration file for NickBot.
+# Example configuration file for DiscordBot.
 # You must provide your own values here.
 
 # Discord bot token (from the Discord Developer Portal)
