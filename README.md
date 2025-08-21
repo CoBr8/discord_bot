@@ -17,18 +17,6 @@ This project is a starting point for experimenting with Discord bots using Pytho
 
 ---
 
-## Badges
-
-You can add badges here (build status, code coverage, Python version support, etc.) using [Shields.io](https://shields.io/).
-
----
-
-## Visuals
-
-Screenshots or terminal session GIFs can be included here if desired. For example, a screenshot of DiscordBot responding in a channel.
-
----
-
 ## Installation
 
 ### Requirements
