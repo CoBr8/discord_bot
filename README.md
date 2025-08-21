@@ -30,8 +30,8 @@ This project is a starting point for experimenting with Discord bots using Pytho
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/nickbot.git
-   cd nickbot
+   git clone https://github.com/CoBr8/discord_bot.git
+   cd discord_bot
    ```
 
 2. Install dependencies:
