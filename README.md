@@ -37,7 +37,7 @@ This project is a starting point for experimenting with Discord bots using Pytho
 2. Install dependencies:
 
    ```bash
-   pip install discord.py
+   uv sync
    ```
 
 3. Create a `config.py` file in the project root.
@@ -53,7 +53,7 @@ This project is a starting point for experimenting with Discord bots using Pytho
 4. Run the bot:
 
    ```bash
-   python main.py
+   python DiscordBot.py
    ```
 
 ---
