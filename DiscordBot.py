@@ -131,7 +131,7 @@ class DiscordBot(commands.Bot):
                 )
                 progress_msg = f"Progress: {len(self._guessed_words_guild)}/{len(self._banned_words)} words.\n"
             else:
-                self._logger.info(f"sent user stats")
+                self._logger.info(f"Sent user stats")
                 returned_theme_status = "\n".join(
                     f"{theme}: {len(words)}/{len(self._THEMES[theme])}" 
                     for theme, words in self._themes_progress.items()
