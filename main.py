@@ -19,7 +19,7 @@ def main():
     LOG_PTH = Path.cwd() / Path("LOGS/") / (__name__  + ".log")
     
     pid_file = LOG_PTH.parent.parent / Path("kill_bot.sh")
-    pid_file.write_text(f"#!/bin/zsh\nkill {getpid}")
+    pid_file.write_text(f"#!/bin/zsh\nkill {getpid()}")
     
     # generating out log object using custom logger class
     logs = Logger(__name__, LOG_PTH, logging.INFO)
