@@ -163,16 +163,18 @@ class DiscordBot(commands.Bot):
     def load_progress(self):
         try:
             if self._PROGRESS_FILE.exists():
-                self._logger.info(f"progress file exists, loading json.")
-                return json.loads(self._PROGRESS_FILE.read_text())
+                self._logger.info(f"Progress file exists, loading json.")
+                with self._PROGRESS_FILE.open() as fp:
+                    return json.load(fp)
         except Exception as e:
             self._logger.error(f"Failed to load progress: {e}")
         return {}
-
-
+        
+        
     def save_progress(self):
         try:
-            self._PROGRESS_FILE.write_text(json.dumps(self._progress, indent=2))
+            with self._PROGRESS_FILE.open() as fp:
+                json.dumps(fp, indent=4)
             self._logger.info(f"Saving progress to file: {self._PROGRESS_FILE}")
         except Exception as e:
             self._logger.error(f"Failed to save progress: {e}")
