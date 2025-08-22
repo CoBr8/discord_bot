@@ -13,6 +13,7 @@ wheels/
 # env specific:
 config.py
 words.py
+progress.json
 
 # service specific
 LOGS/
