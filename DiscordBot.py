@@ -130,9 +130,24 @@ class DiscordBot(commands.Bot):
     # Message handling
     async def on_message(self, message: discord.Message):
         self._logger.info(f"Message from {message.author}: {message.content}")
+        words_in_msg = set(re.findall(r"\b\w+\b", message.content.lower()))   
+        
         if message.author == self.user:
             return
 
+        if self._easter_egg_word in words_in_msg:
+                if self._easter_egg_count == 3:
+                    self._easter_egg_count = 0
+                    try:
+                        await self.send_message(
+                            message, 
+                            f"I'm the ghost with the most, babe."
+                        )
+                        self._logger.info("Bot easter egg triggerd")
+                    except Exception as e:
+                        self._logger.error(f"Error sending Beetlejuice message: {e}")
+                else:
+                    self._easter_egg_count += 1
         
         try:
             await self.random_message(message)   
@@ -188,8 +203,7 @@ class DiscordBot(commands.Bot):
                         self._logger.error(f"Error sending progress message: {e}")
 
                 
-                if message.content.startswith("!guess"):
-                    words_in_msg = set(re.findall(r"\b\w+\b", message.content.lower()))     
+                if message.content.startswith("!guess"):  
                     matches = self._banned_words & words_in_msg # Set intersection
                     if matches:
                         allowed, next_time = self.can_attempt(user_id)
@@ -267,34 +281,6 @@ class DiscordBot(commands.Bot):
                     self._logger.error(f"Error sending random message: {e}")
         except Exception as e:
             self._logger.error(f"Error in random_message: {e}")
-
-
-    # Other message checks
-    async def message_check(self, message):
-        try:
-            unique_words = set(message.content.lower().split(" "))
-            if self._easter_egg_word in unique_words:
-                if self._easter_egg_count == 3:
-                    self._easter_egg_count = 0
-                    try:
-                        await self.send_message(
-                            message, 
-                            f"I'm the ghost with the most, babe."
-                        )
-                        self._logger.info("Bot easter egg triggerd")
-                    except Exception as e:
-                        self._logger.error(f"Error sending Beetlejuice message: {e}")
-                else:
-                    self._easter_egg_count += 1
-
-            if self._banned_words & unique_words:
-                response = f"You're going to jail {message.author}"
-                await self.send_message(
-                    message, 
-                    response
-                )
-        except Exception as e:
-            self._logger.error(f"Error in message_check: {e}")
 
 
     # Generic message sender
