@@ -1,4 +1,11 @@
 #!/bin/python3
+"""
+name:   logger.py
+date:   2025-08-21
+auth:   CoBr8
+desc: 
+    Logging class definition
+"""
 from pathlib import Path
 import logging
 
