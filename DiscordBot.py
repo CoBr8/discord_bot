@@ -62,7 +62,7 @@ class DiscordBot(commands.Bot):
     def load_progress(self):
         try:
             if self._PROGRESS_FILE.exists():
-                self._logger.info(f"progress file exists, loading json.")
+                self._logger.debug(f"progress file exists, loading json.")
                 return json.loads(self._PROGRESS_FILE.read_text())
         except Exception as e:
             self._logger.error(f"Failed to load progress: {e}")
@@ -72,7 +72,7 @@ class DiscordBot(commands.Bot):
     def save_progress(self):
         try:
             self._PROGRESS_FILE.write_text(json.dumps(self._progress, indent=2))
-            self._logger.info(f"Saving progress to file: {self._PROGRESS_FILE}")
+            self._logger.debug(f"Saving progress to file: {self._PROGRESS_FILE}")
         except Exception as e:
             self._logger.error(f"Failed to save progress: {e}")
 
@@ -260,7 +260,7 @@ class DiscordBot(commands.Bot):
         try:
             if random.randint(0, 84) == 42:
                 msg = random.choice(config.SAD_MSGS)
-                self._logger.info(f"sent message: {msg}")
+                self._logger.info(f"Sent random message: {msg}")
                 try:
                     await message.channel.send(msg)
                 except Exception as e:
@@ -281,6 +281,7 @@ class DiscordBot(commands.Bot):
                             message, 
                             f"I'm the ghost with the most, babe."
                         )
+                        self._logger.info("Bot easter egg triggerd")
                     except Exception as e:
                         self._logger.error(f"Error sending Beetlejuice message: {e}")
                 else:
@@ -301,7 +302,7 @@ class DiscordBot(commands.Bot):
         if response:
             try:
                 await self.get_channel(self._channels["Botting"]).send(response) # type: ignore
-                self._logger.info(f"Bot response: {response};to message: {message}")
+                self._logger.debug(f"Bot response: {response};to message: {message}")
             except Exception as e:
                 self._logger.error(f"Error in send_message: {e}")
 
