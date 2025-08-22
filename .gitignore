@@ -12,6 +12,8 @@ wheels/
 
 # env specific:
 config.py
+words.py
 
 # service specific
 LOGS/
+
