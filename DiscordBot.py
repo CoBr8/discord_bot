@@ -93,17 +93,18 @@ class DiscordBot(commands.Bot):
         """
         try:
             now = datetime.now()
-            cutoff = now + timedelta(minutes=self._WINDOW_MINUES)
+            cutoff = now - timedelta(minutes=self._WINDOW_MINUES)
             
             user_progress = self._progress.setdefault(user_id, {"guessed": [], "attempts": [], "themes": {}})
-            attempts = [ts for ts in user_progress["attempts"] if datetime.fromisoformat(ts) < cutoff]
+            
+            attempts = [ts for ts in user_progress["attempts"][::-1] if datetime.fromisoformat(ts) > cutoff]
 
             if len(attempts) >= self._LIMIT_WINDOW:
-                return False, cutoff.strftime("%H:%M:%S")
-
-            attempts.append(now.isoformat())
-            user_progress["attempts"] = attempts
-            return True, None
+                return False, (datetime.fromisoformat("2025-08-22T12:57:29.095294") + timedelta(minutes=self._WINDOW_MINUES)).strftime("%H:%M:%S")
+            else:
+                attempts.append(now.isoformat())
+                user_progress["attempts"] = attempts
+                return True, None
         except Exception as e:
             self._logger.error(f"Error in rate limiting for user {user_id}: {e}")
             return False, "unknown"
