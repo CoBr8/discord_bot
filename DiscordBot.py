@@ -1,8 +1,8 @@
 #!/bin/python3
 """
-name: DiscordBot.py
-auth: Cobr
-date: 2025-08-21
+name:   DiscordBot.py
+date:   2025-08-21
+auth:   CoBr8
 desc:
     Class definition for a discord bot
 """
