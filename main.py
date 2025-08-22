@@ -1,26 +1,28 @@
 #!/bin/python3
 """
-name:   discord_bot
-auth:   CoBr
-date:   2025-08-19
+name:   main.py
+date:   2025-08-21
+auth:   CoBr8
 desc:
-    Using discord library to make a discord application (bot) to troll some folks in a private discord
+    Importing class modules and config information to generate main script body.
 """
 
-from logger import Logger
-from DiscordBot import DiscordBot
-from pathlib import Path
-import logging
-import config
+from logger import Logger # logging class to handle server side logging
+from DiscordBot import DiscordBot # DiscordBot class to handle Guild interactions
+from pathlib import Path # pathlib > sys
+import logging # python logging module
+import config # configuration file, local environment defined
 
 def main():       
-    
+    # define path to where we want the log file to exist
     LOG_PTH = Path.cwd() / Path("LOGS/") / __name__
+    # generating out log object using custom logger class
     logs = Logger(__name__, LOG_PTH, logging.INFO)
+    # inform log that we are starting the bot
     logs.info("Starting Discord Bot")
-
+    # creating a bot object from the custom DiscordBot class
     bot = DiscordBot(config.TOKEN, logger=logs, channels=config.channels)
-    
+    # starting the bot to handle guild interactions
     bot.run_bot()
     
     
