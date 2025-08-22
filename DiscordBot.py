@@ -20,7 +20,12 @@ class DiscordBot(commands.Bot):
         self.__channels = channels
         self.__beetle_juice_counter = 0
         self.__words = config.WORDS
-        self.banned_words = set(self.__words['memes']) | set(self.__words['tech']) | set(self.__words['gaming'])
+        self.banned_words = set(self.__words['memes']) | \
+                            set(self.__words['tech'])  | \
+                            set(self.__words['gaming']) | \
+                            set(self.__words['mythology']) | \
+                            set(self.__words['trolling']) | \
+                            set(self.__words['international'])
         self.THEMES = self.__words
 
         self.PROGRESS_FILE = Path("progress.json")
