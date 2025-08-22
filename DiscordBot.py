@@ -23,32 +23,39 @@ class DiscordBot(commands.Bot):
 
         self._logger = logger
         self._token = token
+        
+        
         self._channels = channels
         self._easter_egg_count = 0
         self._easter_egg_word = config.EASTER_EGG_WORD
+        
+        
         self._words = config.WORDS
+        self._THEMES = self._words
         self._banned_words = set(self._words['memes']) | \
                             set(self._words['tech'])  | \
                             set(self._words['gaming']) | \
                             set(self._words['mythology']) | \
                             set(self._words['trolling']) | \
                             set(self._words['international'])
-        self._THEMES = self._words
 
-        self._LIMIT_WINDOW = 10
-        self._WINDOW_MINUES = 30
-        self._progress = self.load_progress()
-        self.__bot_owner = config.OWNER
-        
-        self._PROGRESS_FILE = Path("data/progress.json")
-        self._PROGRESS_FILE.mkdir(
+        self._PROGRESS_FILE = Path.cwd() / Path("data/progress.json")
+        self._PROGRESS_FILE.parent.mkdir(
             parents=True, 
             exist_ok=True
         )
         
+        self._LIMIT_WINDOW = 10
+        self._WINDOW_MINUES = 30
+        
+        self._progress = self.load_progress()
+        
+        self._bot_owner = config.OWNER
+        
+        
     # getters:
     def get_owner(self):
-        return self.__bot_owner
+        return self._bot_owner
 
   
     # === Persistence ===
