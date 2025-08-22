@@ -17,4 +17,6 @@ progress.json
 
 # service specific
 LOGS/
-
+data/
+.ipynb*
+*.sh
