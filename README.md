@@ -3,17 +3,19 @@
 
 ## Description
 
-DiscordBot is a lightweight Discord bot designed to demonstrate custom logging, message handling, and fun interactive behavior inside a Discord server.
+DiscordBot is a Discord bot designed to demonstrate custom logging, message handling, and fun interactive behavior inside a Discord server.
 
 The bot can:
 
 * Log activity to both console and file.
-* Respond to simple commands (e.g., `$hello`).
+* Respond to simple commands (e.g., `!hello`).
 * Randomly send messages from a predefined list.
 * Monitor for banned words and react accordingly.
-* Include an Easter egg triggered by repeated mentions of "beetlejuice."
+* Include an Easter egg triggered by repeated mentions of a word.
 
 This project is a starting point for experimenting with Discord bots using Python and [discord.py](https://discordpy.readthedocs.io/). It can be extended with additional commands and features.
+
+This bot is also equipped with a progress saved game. A user can use the `!guess` command followed (in the same message) by a sentence, paragraph, or grouping of words. If any of those words are in the "theme" sets, the bot will respond (currently set up as the "botting" channel) with a success message and what words were correct. The bot stores the user's guessed words in a json file, as well as the guild's total guessed words. Python's regex module is used to seperate the words in the message. 
 
 ---
 
@@ -23,6 +25,8 @@ This project is a starting point for experimenting with Discord bots using Pytho
 
 * Python 3.10+
 * `discord.py`
+* `async`
+* `pathlib`
 * A Discord bot token (from the [Discord Developer Portal](https://discord.com/developers/applications))
 
 ### Steps
@@ -45,10 +49,11 @@ This project is a starting point for experimenting with Discord bots using Pytho
 
    At minimum, it must contain values for:
 
-   * Your bot token
-   * Channel IDs
-   * Banned words
-   * Sad messages
+   * Your bot token: int
+   * Channel IDs: dict("channel-name":channel-id)
+   * Banned words: list(str,...)
+   * Sad messages: list(str,...)
+   * EASTER_EGG_WORD: str
 
 4. Run the bot:
 
@@ -64,7 +69,7 @@ This project is a starting point for experimenting with Discord bots using Pytho
   Type:
 
   ```
-  $hello
+  !hello
   ```
 
   The bot will respond with:
@@ -83,8 +88,8 @@ This project is a starting point for experimenting with Discord bots using Pytho
   You're going to jail <username>
   ```
 
-* **Beetlejuice Easter Egg**
-  Mentioning “beetlejuice” three times in a row will trigger:
+* **Easter Egg**
+  Mentioning the easter egg word three times in a row will trigger:
 
   ```
   I'm the ghost with the most, babe.
@@ -176,5 +181,11 @@ SAD_MSGS = [
     "Sometimes, silence is the loudest response.",
     "Do robots dream of electric sheep?"
 ]
+
+channels = {"Name 1":1234567..., "IRL":1234567..., "Interesting":1234567..., ...}
+
+user_ids = [1234...,5678...,...]
+
+EASTER_EGG_WORD = "single-word"
 ```
 
