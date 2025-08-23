@@ -66,9 +66,10 @@ class DiscordBot(commands.Bot):
         
     
     async def guess_words(self, message):
+        user_id = str(message.author.id)
         matches = self._banned_words & self._words_in_msg # Set intersection
         if matches:
-            allowed, next_time = self.can_attempt(message.author.id)
+            allowed, next_time = self.can_attempt(user_id)
             if not allowed:
                 try:
                     await self.send_message(
@@ -178,7 +179,7 @@ class DiscordBot(commands.Bot):
         
     def save_progress(self):
         try:
-            with self._PROGRESS_FILE.open() as fp:
+            with self._PROGRESS_FILE.open('w') as fp:
                 json.dump(self._progress, fp=fp, indent=4)
             self._logger.info(f"Saving progress to file: {self._PROGRESS_FILE}")
         except Exception as e:
@@ -257,7 +258,6 @@ class DiscordBot(commands.Bot):
                     func = False
                 if args != "":
                     self._words_in_msg = set(re.findall(r"\b\w+\b", args))
-                    
             except Exception as e: 
                 self._words_in_msg = set(re.findall(r"\b\w+\b", message.content.lower()))
                 func = False
@@ -278,8 +278,9 @@ class DiscordBot(commands.Bot):
             
             if message.channel.id == self._channels["Botting"]:
                 user_id = str(message.author.id)
+                guild_id = str(message.guild.id) if message.guild is not None else 'guild'
                 self._guild_progress = self._progress.setdefault(
-                    message.guild.id if message.guild is not None else 'guild', 
+                    guild_id,
                     {"guessed": [], "attempts": [], "themes": {}}
                 )
                 self._user_progress = self._progress.setdefault(
@@ -297,7 +298,7 @@ class DiscordBot(commands.Bot):
                     await func(message) # type: ignore
 
                 self._progress[user_id] = self._user_progress
-                self._progress[message.guild.id if message.guild is not None else 'guild'] = self._guild_progress
+                self._progress[guild_id] = self._guild_progress
                 self.save_progress()
                 
         except Exception as e:
