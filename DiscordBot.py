@@ -1,13 +1,12 @@
-from ast import arguments
-from codecs import ignore_errors
-import functools
 import discord
 import random
-from discord.ext import commands
-from pathlib import Path
 import json
 import re
+
+from discord.ext import commands
+from pathlib import Path
 from datetime import datetime, timedelta
+
 import config
 
 class DiscordBot(commands.Bot):
@@ -180,7 +179,7 @@ class DiscordBot(commands.Bot):
     def save_progress(self):
         try:
             with self._PROGRESS_FILE.open() as fp:
-                json.dumps(self._progress, fp=fp, indent=4)
+                json.dump(self._progress, fp=fp, indent=4)
             self._logger.info(f"Saving progress to file: {self._PROGRESS_FILE}")
         except Exception as e:
             self._logger.error(f"Failed to save progress: {e}")
@@ -335,4 +334,3 @@ class DiscordBot(commands.Bot):
             super().run(self._token)
         except Exception as e:
             self._logger.error(f"Error starting the bot. {e}")
-
