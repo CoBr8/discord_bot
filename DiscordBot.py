@@ -45,6 +45,9 @@ class DiscordBot(commands.Bot):
                             set(self._words['international'])
 
         self._PROGRESS_FILE = Path.cwd() / Path("data/progress.json")
+        if not self._PROGRESS_FILE.exists():
+            self._PROGRESS_FILE.touch()
+            
         self._PROGRESS_FILE.parent.mkdir(
             parents=True, 
             exist_ok=True
@@ -164,8 +167,11 @@ class DiscordBot(commands.Bot):
         try:
             if self._PROGRESS_FILE.exists():
                 self._logger.info(f"Progress file exists, loading json.")
-                with self._PROGRESS_FILE.open() as fp:
-                    return json.load(fp)
+                progress_data = self._PROGRESS_FILE.read_text()
+                if progress_data != "": 
+                    return json.loads(progress_data)
+                else:
+                    return {}
         except Exception as e:
             self._logger.error(f"Failed to load progress: {e}")
         return {}
@@ -174,7 +180,7 @@ class DiscordBot(commands.Bot):
     def save_progress(self):
         try:
             with self._PROGRESS_FILE.open() as fp:
-                json.dumps(fp, indent=4)
+                json.dumps(self._progress, fp=fp, indent=4)
             self._logger.info(f"Saving progress to file: {self._PROGRESS_FILE}")
         except Exception as e:
             self._logger.error(f"Failed to save progress: {e}")
