@@ -58,6 +58,7 @@ class DiscordBot(commands.Bot):
         self._progress = self.load_progress()
         
         self._bot_owner = config.OWNER
+        
         self._commands = {
             "!guess" : self.guess_words,
             "!stats" : self.get_stats,
@@ -236,12 +237,21 @@ class DiscordBot(commands.Bot):
             return progressions.get("themes", {})
 
 
+    # Async definitions for handling dicsord events:
     # Message handling
     async def on_message(self, message: discord.Message):
-        if message.author == self.user or message.author.id == self.get_user(268562382173765643):
+        """
+        name:   on_message
+        auth:   CoBr8
+        desc:
+            When the guild receives a message this method deals with it
+        """
+        # check whether a bot has sent the message.
+        if message.author.bot or message.author.system:
+            # do nothing and end the event.
             return
         
-        self._logger.info(f"Message from {message.author}: {message.content}")
+        self._logger.info(f"Message from {message.author.name}: {message.content}")
         
         self._words_in_msg = set(re.findall(r"\b\w+\b", message.content.lower()))
         
