@@ -296,7 +296,8 @@ class DiscordBot(commands.Bot):
                 
                 if func != False:
                     response = func(message)
-                    await self.send_message(response=response)
+                    if response:
+                        await self.send_message(response=response)
 
                 self._progress[user_id] = self._user_progress        
                 self._progress[guild_id] = self._guild_progress
