@@ -158,6 +158,15 @@ class DiscordBot(commands.Bot):
             self._logger.error(f"Error sending hello message: {e}")
 
 
+    def easter_egg(self, word_set):
+        if self._easter_egg_word in word_set:
+            if self._easter_egg_count == 3:
+                self._easter_egg_count = 0
+                self._logger.info("Bot easter egg triggerd")
+                return True, f"I'm the ghost with the most, babe."
+            else:
+                self._easter_egg_count += 1
+        return False,""
     # Getters
     def get_owner(self):
         return self._bot_owner
@@ -237,6 +246,28 @@ class DiscordBot(commands.Bot):
             return progressions.get("themes", {})
 
 
+    def split_message(self, message):
+        try:
+            self.split_message(message)
+            parts = message.content.lower().split(maxsplit=1)
+            
+            cmd = parts[0]
+            args = parts[1] if len(parts)>1 else ""
+            
+            # get 'cmd' if it exists, otherwise false
+            if cmd.startswith(self._command_char):             
+                func = self._commands.get(cmd, False) 
+            
+            # if we have a command and args extract words.
+            if args != "": 
+                word_set = set(re.findall(r"\b\w+\b", args)) 
+        except Exception as e:
+            word_set = set(re.findall(r"\b\w+\b", message.content.lower()))
+            func = False
+        
+        return func, word_set
+
+
     # Async definitions for handling dicsord events:
     # Message handling
     async def on_message(self, message: discord.Message):
@@ -246,69 +277,59 @@ class DiscordBot(commands.Bot):
         desc:
             When the guild receives a message this method deals with it
         """
-        # check whether a bot has sent the message.
+        
+        # check whether a bot or system has sent the message.
         if message.author.bot or message.author.system:
             # do nothing and end the event.
             return
         
-        self._logger.info(f"Message from {message.author.name}: {message.content}")
+        self._logger.info(
+            f"Message from {str(message.author.name)} at {str(message.created_at)}"
+        )
         
         self._words_in_msg = set(re.findall(r"\b\w+\b", message.content.lower()))
         
+        user_id = str(message.author.id)
+        
+        guild_id = str(message.guild.id) if message.guild is not None else "guild"
+            
         try:
             await self.random_message(message)
             
-            try:
-                parts = message.content.lower().split(maxsplit=1)
-                cmd = parts[0]
-                args = parts[1] if len(parts)>1 else ""
-                if cmd.startswith(self._command_char):             
-                    func = self._commands.get(cmd)
-                else:
-                    func = False
-                if args != "":
-                    self._words_in_msg = set(re.findall(r"\b\w+\b", args))
-            except Exception as e: 
-                self._words_in_msg = set(re.findall(r"\b\w+\b", message.content.lower()))
-                func = False
+            func, word_set = self.split_message(message)
             
-            if self._easter_egg_word in self._words_in_msg:
-                if self._easter_egg_count == 3:
-                    self._easter_egg_count = 0
-                    try:
-                        await self.send_message(
-                            message, 
-                            f"I'm the ghost with the most, babe."
-                        )
-                        self._logger.info("Bot easter egg triggerd")
-                    except Exception as e:
-                        self._logger.error(f"Error sending Beetlejuice message: {e}")
-                else:
-                    self._easter_egg_count += 1    
+            egg, text = self.easter_egg(word_set=word_set)
+            
+            if egg:
+                await self.send_message(message, response=text)
             
             if message.channel.id == self._channels["Botting"]:
-                user_id = str(message.author.id)
-                guild_id = str(message.guild.id) if message.guild is not None else 'guild'
+                
                 self._guild_progress = self._progress.setdefault(
                     guild_id,
                     {"guessed": [], "attempts": [], "themes": {}}
                 )
+                
                 self._user_progress = self._progress.setdefault(
                     user_id, 
                     {"guessed": [], "attempts": [], "themes": {}}
                 )
                 
                 self._guessed_words = set(self._user_progress.get("guessed", []))
+                
                 self._guessed_words_guild = set(self._guild_progress.get("guessed", []))
                 
                 self._themes_progress = self._user_progress.get("themes", {})
+                
                 self._theme_progress_guild = self._guild_progress.get("themes", {})
                 
                 if func != False:
                     await func(message) # type: ignore
 
                 self._progress[user_id] = self._user_progress
+                
                 self._progress[guild_id] = self._guild_progress
+                
                 self.save_progress()
                 
         except Exception as e:
