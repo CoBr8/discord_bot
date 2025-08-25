@@ -66,107 +66,6 @@ class DiscordBot(commands.Bot):
         }
         
     
-    async def guess_words(self, message):
-        user_id = str(message.author.id)
-        matches = self._banned_words & self._words_in_msg # Set intersection
-        if matches:
-            allowed, next_time = self.can_attempt(user_id)
-            if not allowed:
-                try:
-                    await self.send_message(
-                        message,
-                        f"Out of guesses! Try again after {next_time}."
-                    )
-                except Exception as e:
-                    self._logger.error(f"Error sending rate limit message: {e}")
-                self.save_progress()
-                return
-
-            new_guesses = matches - self._guessed_words
-            if new_guesses:
-                self._guessed_words.update(new_guesses)
-                self._user_progress["guessed"] = list(self._guessed_words)
-                self._guild_progress["guessed"] = list(self._guessed_words)
-                self.update_themes(self._user_progress, new_guesses)
-                self.update_themes(self._guild_progress, new_guesses)
-
-                try:
-                    await self.send_message(
-                        message,
-                        f"Correct guesses: {', '.join(new_guesses)}\n"
-                    )
-                except Exception as e:
-                    self._logger.error(f"Error sending correct guesses message: {e}")
-
-                remaining = list(self._banned_words - self._guessed_words)
-                if remaining:
-                    try:
-                        await self.send_message(
-                            message,
-                            f"Words are remaining still"
-                        ) 
-                    except Exception as e:
-                        self._logger.error(f"Error sending hint message: {e}")
-                else:
-                    try:
-                        await self.send_message(
-                            message, 
-                            f"Congratulations {message.author.name}! You guessed all the words!"
-                        )
-                    except Exception as e:
-                        self._logger.error(f"Error sending completion message: {e}")
-            else:
-                try:
-                    await self.send_message(
-                        message, 
-                        "You already guessed these words!"
-                    )
-                except Exception as e:
-                    self._logger.error(f"Error sending duplicate guess message: {e}")
-
-
-    async def get_stats(self, message):
-        try:
-            if "--guild" in message.content.lower():
-                self._logger.info(f"Sent guild stats")
-                returned_theme_status = "\n".join(
-                    f"{theme}: {len(words)}/{len(self._THEMES[theme])}" 
-                    for theme, words in self._theme_progress_guild.items()
-                )
-                progress_msg = f"Progress: {len(self._guessed_words_guild)}/{len(self._banned_words)} words.\n"
-            else:
-                self._logger.info(f"Sent user stats")
-                returned_theme_status = "\n".join(
-                    f"{theme}: {len(words)}/{len(self._THEMES[theme])}" 
-                    for theme, words in self._themes_progress.items()
-                )
-                progress_msg = f"Progress: {len(self._guessed_words)}/{len(self._banned_words)} words."
-
-            await self.send_message(
-                message,
-                f"{progress_msg}\nTheme progress:\n{returned_theme_status}"
-            )
-        except Exception as e:
-            self._logger.error(f"Error sending progress message: {e}")
-
-
-    async def hello_world(self, message):
-        try:
-            await message.channel.send('Hello World!')
-            self._logger.info(f"Command !hello executed.")
-        except Exception as e:
-            self._logger.error(f"Error sending hello message: {e}")
-
-
-    def easter_egg(self, word_set):
-        if self._easter_egg_word in word_set:
-            if self._easter_egg_count == 3:
-                self._easter_egg_count = 0
-                self._logger.info("Bot easter egg triggerd")
-                return True, f"I'm the ghost with the most, babe."
-            else:
-                self._easter_egg_count += 1
-        return False,""
     # Getters
     def get_owner(self):
         return self._bot_owner
@@ -268,8 +167,83 @@ class DiscordBot(commands.Bot):
         return func, word_set
 
 
-    # Async definitions for handling dicsord events:
-    # Message handling
+    def guess_words(self, message):
+        user_id = str(message.author.id)
+        matches = self._banned_words & self._words_in_msg # Set intersection
+        
+        response = ""
+        
+        if matches:
+            allowed, next_time = self.can_attempt(user_id)
+            
+            if not allowed:
+                response =  f"Out of guesses! Try again after {next_time}."
+                self.save_progress()
+                return response
+
+            new_guesses = matches - self._guessed_words
+            
+            if new_guesses:
+                self._guessed_words.update(new_guesses)
+                self._user_progress["guessed"] = list(self._guessed_words)
+                self._guild_progress["guessed"] = list(self._guessed_words)
+                self.update_themes(self._user_progress, new_guesses)
+                self.update_themes(self._guild_progress, new_guesses)
+
+                response += f"Correct guesses: {', '.join(new_guesses)}\n"
+                remaining = list(self._banned_words - self._guessed_words)
+
+                if remaining:
+                    response += "Words are remaining still"
+                else:
+                    response += f"Congratulations {message.author.name}! You guessed all the words!"
+            else:
+                response += "You already guessed these words!"
+        return response
+
+
+    def easter_egg(self, word_set):
+        if self._easter_egg_word in word_set:
+            if self._easter_egg_count == 3:
+                self._easter_egg_count = 0
+                self._logger.info("Bot easter egg triggerd")
+                return True, f"I'm the ghost with the most, babe."
+            else:
+                self._easter_egg_count += 1
+        return False,""
+    
+    
+    def get_stats(self, message):
+        try:
+            if "--guild" in message.content.lower():
+                self._logger.info(f"Sent guild stats")
+                returned_theme_status = "\n".join(
+                    f"{theme}: {len(words)}/{len(self._THEMES[theme])}" 
+                    for theme, words in self._theme_progress_guild.items()
+                )
+                progress_msg = f"Progress: {len(self._guessed_words_guild)}/{len(self._banned_words)} words.\n"
+            else:
+                self._logger.info(f"Sent user stats")
+                returned_theme_status = "\n".join(
+                    f"{theme}: {len(words)}/{len(self._THEMES[theme])}" 
+                    for theme, words in self._themes_progress.items()
+                )
+                progress_msg = f"Progress: {len(self._guessed_words)}/{len(self._banned_words)} words.\n"
+            return progress_msg + "Theme stats:\n" + returned_theme_status
+        except Exception as e:
+            self._logger.error(f"Error sending progress message: {e}")
+            return None
+
+
+    async def hello_world(self, message):
+        try:
+            await message.channel.send('Hello World!')
+            self._logger.info(f"Command !hello executed.")
+        except Exception as e:
+            self._logger.error(f"Error sending hello message: {e}")
+
+
+    # On new message creation/send handling
     async def on_message(self, message: discord.Message):
         """
         name:   on_message
@@ -301,7 +275,7 @@ class DiscordBot(commands.Bot):
             egg, text = self.easter_egg(word_set=word_set)
             
             if egg:
-                await self.send_message(message, response=text)
+                await self.send_message(response=text)
             
             if message.channel.id == self._channels["Botting"]:
                 
@@ -309,27 +283,24 @@ class DiscordBot(commands.Bot):
                     guild_id,
                     {"guessed": [], "attempts": [], "themes": {}}
                 )
-                
                 self._user_progress = self._progress.setdefault(
                     user_id, 
                     {"guessed": [], "attempts": [], "themes": {}}
                 )
-                
-                self._guessed_words = set(self._user_progress.get("guessed", []))
-                
-                self._guessed_words_guild = set(self._guild_progress.get("guessed", []))
-                
+    
+                self._guessed_words = set(self._user_progress.get("guessed", []))            
                 self._themes_progress = self._user_progress.get("themes", {})
                 
+                self._guessed_words_guild = set(self._guild_progress.get("guessed", []))
                 self._theme_progress_guild = self._guild_progress.get("themes", {})
                 
                 if func != False:
-                    await func(message) # type: ignore
+                    response = func(message)
+                    await self.send_message(response=response)
 
-                self._progress[user_id] = self._user_progress
-                
+                self._progress[user_id] = self._user_progress        
                 self._progress[guild_id] = self._guild_progress
-                
+        
                 self.save_progress()
                 
         except Exception as e:
@@ -350,12 +321,12 @@ class DiscordBot(commands.Bot):
             self._logger.error(f"Error in random_message: {e}")
 
 
-    # Generic message sender
-    async def send_message(self, message, response=None):
+    # Message sender
+    async def send_message(self, response=None):
         if response:
             try:
                 await self.get_channel(self._channels["Botting"]).send(response) # type: ignore
-                self._logger.info(f"Bot response: {response};to message: {message}")
+                self._logger.info(f"Bot response: {response}")
             except Exception as e:
                 self._logger.error(f"Error in send_message: {e}")
 
