@@ -18,7 +18,7 @@ class Logger:
         # Formatter with timestamp + log level + message
         formatter = logging.Formatter(
             fmt="[%(asctime)s] | [%(levelname)s] | [%(name)s] | %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S"
+            datefmt="%Y-%m-%dT%H:%M:%S"
         )
 
         # Console handler (stdout by default)
