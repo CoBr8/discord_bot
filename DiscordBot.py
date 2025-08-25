@@ -1,3 +1,4 @@
+from genericpath import exists
 import discord
 import random
 import json
@@ -54,6 +55,7 @@ class DiscordBot(commands.Bot):
         
         self._LIMIT_WINDOW = 10
         self._WINDOW_MINUES = 30
+        self._hydration_threshold = 120
         
         self._progress = self.load_progress()
         
@@ -235,6 +237,35 @@ class DiscordBot(commands.Bot):
             return None
 
 
+    def hydration_reminder(self):
+        self._logger.debug(f"START of hydration_reminder function")
+        try:
+            time_now    = datetime.now()
+            
+            time_path   = Path().cwd() / Path("data/hydro_homie")
+            if not time_path.exists():
+                time_path.parent.mkdir(
+                    parents=True,
+                    exist_ok=True
+                )
+                time_path.touch(exist_ok=True)
+                time_path.write_text(time_now.isoformat())
+            time_then = datetime.fromisoformat(time_path.read_text().strip())
+            
+            time_since = time_now - time_then
+            TIMEDELTA_THRESHOLD = timedelta(minutes=self._hydration_threshold)
+            
+            if time_since > TIMEDELTA_THRESHOLD:
+                time_path.write_text(time_now.isoformat())
+                self._logger.debug(f"END of hydration_reminder function. Reminder sent")
+                return f"Please drink some water."
+            
+        except Exception as e:
+            self._logger.error(f"Error with hydration: {e!r}")
+        self._logger.debug(f"END of hydration_reminder function. Exception caught. Error on previous line.")
+        return ""
+
+
     async def hello_world(self, message):
         try:
             await message.channel.send('Hello World!')
@@ -268,6 +299,10 @@ class DiscordBot(commands.Bot):
         guild_id = str(message.guild.id) if message.guild is not None else "guild"
             
         try:
+            hydrate_message = self.hydration_reminder()
+            if hydrate_message:
+                await self.send_message(response=hydrate_message, channel="Main")
+        
             await self.random_message(message)
             
             func, word_set = self.split_message(message)
@@ -323,11 +358,11 @@ class DiscordBot(commands.Bot):
 
 
     # Message sender
-    async def send_message(self, response=None):
+    async def send_message(self, response=None, channel="Botting"):
         if response:
             try:
-                await self.get_channel(self._channels["Botting"]).send(response) # type: ignore
-                self._logger.info(f"Bot response: {response}")
+                await self.get_channel(self._channels[channel]).send(response) # type: ignore
+                self._logger.info(f"Bot responded {response!r}")
             except Exception as e:
                 self._logger.error(f"Error in send_message: {e}")
 
