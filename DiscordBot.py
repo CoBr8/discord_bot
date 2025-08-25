@@ -148,8 +148,9 @@ class DiscordBot(commands.Bot):
 
 
     def split_message(self, message):
+        func = False
+        word_set = set()
         try:
-            self.split_message(message)
             parts = message.content.lower().split(maxsplit=1)
             
             cmd = parts[0]
@@ -157,14 +158,13 @@ class DiscordBot(commands.Bot):
             
             # get 'cmd' if it exists, otherwise false
             if cmd.startswith(self._command_char):             
-                func = self._commands.get(cmd, False) 
+                func = self._commands.setdefault(cmd, False)
             
             # if we have a command and args extract words.
             if args != "": 
                 word_set = set(re.findall(r"\b\w+\b", args)) 
         except Exception as e:
             word_set = set(re.findall(r"\b\w+\b", message.content.lower()))
-            func = False
         
         return func, word_set
 
@@ -250,7 +250,9 @@ class DiscordBot(commands.Bot):
                 )
                 time_path.touch(exist_ok=True)
                 time_path.write_text(time_now.isoformat())
-            time_then = datetime.fromisoformat(time_path.read_text().strip())
+                time_then = datetime(year=1969,month=12,day=1,hour=0,minute=0,second=0,microsecond=0)
+            else:
+                time_then = datetime.fromisoformat(time_path.read_text().strip())
             
             time_since = time_now - time_then
             TIMEDELTA_THRESHOLD = timedelta(minutes=self._hydration_threshold)
@@ -266,10 +268,10 @@ class DiscordBot(commands.Bot):
         return ""
 
 
-    async def hello_world(self, message):
+    def hello_world(self, message):
         try:
-            await message.channel.send('Hello World!')
             self._logger.info(f"Command !hello executed.")
+            return f'Hello World!'
         except Exception as e:
             self._logger.error(f"Error sending hello message: {e}")
 
@@ -300,6 +302,7 @@ class DiscordBot(commands.Bot):
             
         try:
             hydrate_message = self.hydration_reminder()
+            
             if hydrate_message:
                 await self.send_message(response=hydrate_message, channel="Main")
         
@@ -329,7 +332,7 @@ class DiscordBot(commands.Bot):
                 self._guessed_words_guild = set(self._guild_progress.get("guessed", []))
                 self._theme_progress_guild = self._guild_progress.get("themes", {})
                 
-                if func != False:
+                if func is not False:
                     response = func(message)
                     if response:
                         await self.send_message(response=response)

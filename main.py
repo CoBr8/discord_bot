@@ -18,7 +18,7 @@ LOG_NAME = "discord_bot_" +  datetime.now().strftime("%Y-%m-%dT%H:%M") + ".log"
 
 def main():       
     # define path to where we want the log file to exist
-    LOG_PTH = Path.cwd() / Path("LOGS/") / (__name__  + ".log")
+    LOG_PTH = Path.cwd() / Path("LOGS/") / ("discord_bot_"+datetime.now().strftime("%Y-%m-%dT%H:%M:%S")  + ".log")
     pid_file = LOG_PTH.parent.parent / Path("kill_bot.sh")
     pid_file.write_text(f"#!/bin/zsh\nkill {getpid()}")
     
