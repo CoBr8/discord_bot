@@ -126,16 +126,16 @@ class DiscordBot(commands.Bot):
         try:
             parts = message.content.lower().split(maxsplit=1)
             
-            cmd = parts[0]
-            args = parts[1] if len(parts)>1 else ""
-            
             # get 'cmd' if it exists, otherwise false
+            cmd = parts[0]
             if cmd.startswith(self._command_char):             
-                func = self._commands.setdefault(cmd, False)
-            
-            # if we have a command and args extract words.
-            if args != "": 
-                word_set = set(re.findall(r"\b\w+\b", args)) 
+                func = self._commands.setdefault(cmd, self._logger.info)
+                # if we have a command and args extract words.
+                args = parts[1] if len(parts)>1 else ""
+                if args != "": 
+                    word_set = set(re.findall(r"\b\w+\b", args)) 
+            else:
+                word_set = set(re.findall(r"\b\w+\b", message.content.lower()))
         except Exception as e:
             word_set = set(re.findall(r"\b\w+\b", message.content.lower()))
         
@@ -261,39 +261,55 @@ class DiscordBot(commands.Bot):
               "author": {
                   "timestamp": {
                       <content>
-                  }
-              }  
+                    }
+                }  
             },
         }
         
         """
         data_path = Path().cwd() / Path("data") / Path("messages.json")
+        self._logger.debug(f"loading: {data_path = !s}")
         data_path.parent.mkdir(
             parents=True, 
             exist_ok=True
         )
         
-        try:
-            file_text = data_path.read_text()
-            if file_text:
-                json_data = json.loads(file_text)
-            else:
-                json_data = AutoDict()
-            date = str(datetime.now().strftime("%Y-%m-%d"))
-            author_id = str(message.author.id)
-            timestamp = str(message.created_at.isoformat())
-            msg_text = str(message.clean_content)
-            
-            json_data[date][author_id][timestamp] = msg_text
-            data_path.write_text(
-                json.dumps(
-                    json_data.to_dict(), 
-                    indent=4
+        if not data_path.exists():
+            data_path.touch()
+        
+        else: 
+            try:
+                file_text = data_path.read_text()
+                self._logger.debug(f"Read file {data_path = !s}")
+                
+                if file_text:
+                    json_data = json.loads(file_text)
+                    self._logger.debug(f"converted file to Python 'JSON'")
+                else:
+                    self._logger.debug(f"File empty, creating dict")
+                    json_data = AutoDict()
+                
+                date = str(datetime.now().strftime("%Y-%m-%d"))
+                author_id = str(message.author.id)
+                timestamp = str(message.created_at.isoformat())
+                msg_text = str(message.clean_content)
+                
+                ((json_data.setdefault(date,{})).setdefault(author_id,{})).setdefault(timestamp, {})
+                json_data[date][author_id][timestamp] = msg_text
+                data_path.write_text(
+                    json.dumps(
+                        json_data, 
+                        indent=4
+                    )
                 )
-            )
-            self._logger.info(f"Wrote {message.id!s} to {data_path!s}")    
-        except Exception as e:
-            self._logger.error(f"Error reading {data_path=!s}")
+                self._logger.info(f"Wrote {message.id!s} to {data_path!s}")    
+            # except 
+            except json.JSONDecodeError:
+                self._logger.error(f"Error decoding JSON file: {data_path = !s}")
+                
+            except Exception as e:
+                self._logger.error(f"Unknown error: {e}")
+            
 
 
     # On new message creation/send handling
@@ -304,6 +320,8 @@ class DiscordBot(commands.Bot):
         desc:
             When the guild receives a message this method deals with it
         """
+        # log messages
+        self.message_json(message=message)
         
         # check whether a bot or system has sent the message.
         if message.author.bot or message.author.system:
@@ -327,11 +345,19 @@ class DiscordBot(commands.Bot):
                 # send a message to the main channel to remind folks to hydrate. 
                 await self.send_message(response=hydrate_message, channel="Main")
         
+            # check if Bot is mentioned: 
             if self.user.mentioned_in(message): # type: ignore
-                if "fuck you" in message.content.lower(): 
-                    await message.reply(config.settings.get("DIRECT_MESSAGE","").get("ANGRY"))
+                # if everyone is mentioned we don't need a bot responding. 
+                if "everyone" in message.mentions:
+                    # log everyone mention event.
+                    self._logger.info(f"Everyone mentioned: {message.author.name =!s}")
                 else:
-                    await message.reply(config.settings.get("DIRECT_MESSAGE","").get("NORMAL"))
+                    # if swearing at bot, swear back.
+                    if "fuck you" in message.content.lower(): 
+                        await message.reply(config.settings.get("DIRECT_MESSAGE","").get("ANGRY"))
+                    # if just mentioning bot, "humour" response.
+                    else:
+                        await message.reply(config.settings.get("DIRECT_MESSAGE","").get("NORMAL"))
                     
             func, word_set = self.split_message(message)
             
