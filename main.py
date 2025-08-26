@@ -23,7 +23,7 @@ def main():
     pid_file.write_text(f"#!/bin/zsh\nkill {getpid()}")
     
     # generating out log object using custom logger class
-    logs = Logger(LOG_NAME, LOG_PTH, logging.INFO)
+    logs = Logger(LOG_NAME, LOG_PTH, logging.DEBUG)
     
     # inform log that we are starting the bot
     logs.info("Starting Discord Bot")
