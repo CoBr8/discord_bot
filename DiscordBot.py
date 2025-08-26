@@ -311,7 +311,6 @@ class DiscordBot(commands.Bot):
                 self._logger.error(f"Unknown error: {e}")
             
 
-
     # On new message creation/send handling
     async def on_message(self, message: discord.Message):
         """
