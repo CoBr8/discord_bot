@@ -29,7 +29,7 @@ def main():
     logs.info("Starting Discord Bot")
     
     # creating a bot object from the custom DiscordBot class
-    bot = DiscordBot(config.TOKEN, logger=logs, channels=config.channels)
+    bot = DiscordBot(config.settings.setdefault("TOKEN", ""), logger=logs, channels=config.settings.setdefault("CHANNELS", {}))
     
     # starting the bot to handle guild interactions
     bot.run_bot()

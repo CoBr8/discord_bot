@@ -32,10 +32,10 @@ class DiscordBot(commands.Bot):
         
         self._channels = channels
         self._easter_egg_count = 0
-        self._easter_egg_word = config.EASTER_EGG_WORD
+        self._easter_egg_word = config.settings.setdefault("EASTER_EGG_WORD","Fourier")
         
         
-        self._words = config.WORDS
+        self._words = config.settings.setdefault("WORDS", {})
         self._THEMES = self._words
         self._banned_words = set(self._words['memes']) | \
                             set(self._words['tech'])  | \
@@ -59,7 +59,7 @@ class DiscordBot(commands.Bot):
         
         self._progress = self.load_progress()
         
-        self._bot_owner = config.OWNER
+        self._bot_owner = config.settings.setdefault("OWNER", "")
         
         self._commands = {
             "!guess" : self.guess_words,
@@ -276,6 +276,16 @@ class DiscordBot(commands.Bot):
             self._logger.error(f"Error sending hello message: {e}")
 
 
+    def check_words(self, word_set:set):
+        self._logger.debug(f"check_words config 'ban': {set(config.settings.setdefault("BAN", []))}")
+        self._logger.debug(f"check_words word_set: {word_set}")
+        conditional_set = set(config.settings.setdefault("BAN", [])) & set(word_set)
+        self._logger.debug(f"check_words set intersection: {conditional_set}")
+        if conditional_set:
+            return True, f"Where's my bike?"
+        return False, ""            
+    
+    
     # On new message creation/send handling
     async def on_message(self, message: discord.Message):
         """
@@ -301,19 +311,27 @@ class DiscordBot(commands.Bot):
         guild_id = str(message.guild.id) if message.guild is not None else "guild"
             
         try:
-            hydrate_message = self.hydration_reminder()
             
+            await self.random_message(message)
+            
+            hydrate_message = self.hydration_reminder()
             if hydrate_message:
                 await self.send_message(response=hydrate_message, channel="Main")
         
-            await self.random_message(message)
             if self.user.mentioned_in(message): # type: ignore
                 if "fuck you" in message.content.lower(): 
-                    await message.reply(f"No, Fuck you!")
+                    await message.reply(config.settings.get("DIRECT_MESSAGE","").get("ANGRY"))
                 else:
-                    await message.reply(f"The Fuck you, want. Clanka")
+                    await message.reply(config.settings.get("DIRECT_MESSAGE","").get("NORMAL"))
+                    
             func, word_set = self.split_message(message)
             
+            ban, response = self.check_words(self._words_in_msg)
+            
+            if ban:
+                await message.delete()
+                await message.channel.send(response)
+                
             egg, text = self.easter_egg(word_set=word_set)
             
             if egg:
@@ -340,7 +358,7 @@ class DiscordBot(commands.Bot):
                     response = func(message)
                     if response:
                         await self.send_message(response=response)
-                    await message.delete(delay=3)
+                        await message.delete(delay=3)
 
                 self._progress[user_id] = self._user_progress        
                 self._progress[guild_id] = self._guild_progress
@@ -355,7 +373,7 @@ class DiscordBot(commands.Bot):
     async def random_message(self, message):
         try:
             if random.randint(0, 84) == 42:
-                msg = random.choice(config.SAD_MSGS)
+                msg = random.choice(config.settings.setdefault("SAD_MSGS", []))
                 self._logger.info(f"Sent random message: {msg}")
                 try:
                     await message.channel.send(msg)
