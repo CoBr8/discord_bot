@@ -307,7 +307,11 @@ class DiscordBot(commands.Bot):
                 await self.send_message(response=hydrate_message, channel="Main")
         
             await self.random_message(message)
-            
+            if self.user.mentioned_in(message): # type: ignore
+                if "fuck you" in message.content.lower(): 
+                    await message.reply(f"No, Fuck you!")
+                else:
+                    await message.reply(f"The Fuck you, want. Clanka")
             func, word_set = self.split_message(message)
             
             egg, text = self.easter_egg(word_set=word_set)
@@ -336,6 +340,7 @@ class DiscordBot(commands.Bot):
                     response = func(message)
                     if response:
                         await self.send_message(response=response)
+                    await message.delete(delay=3)
 
                 self._progress[user_id] = self._user_progress        
                 self._progress[guild_id] = self._guild_progress
