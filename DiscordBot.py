@@ -253,6 +253,49 @@ class DiscordBot(commands.Bot):
         return False, ""            
     
     
+    def message_json(self, message:discord.Message):
+        """
+        json data format:
+        {
+            "date": {
+              "author": {
+                  "timestamp": {
+                      <content>
+                  }
+              }  
+            },
+        }
+        
+        """
+        data_path = Path().cwd() / Path("data") / Path("messages.json")
+        data_path.parent.mkdir(
+            parents=True, 
+            exist_ok=True
+        )
+        
+        try:
+            file_text = data_path.read_text()
+            if file_text:
+                json_data = json.loads(file_text)
+            else:
+                json_data = AutoDict()
+            date = str(datetime.now().strftime("%Y-%m-%d"))
+            author_id = str(message.author.id)
+            timestamp = str(message.created_at.isoformat())
+            msg_text = str(message.clean_content)
+            
+            json_data[date][author_id][timestamp] = msg_text
+            data_path.write_text(
+                json.dumps(
+                    json_data.to_dict(), 
+                    indent=4
+                )
+            )
+            self._logger.info(f"Wrote {message.id!s} to {data_path!s}")    
+        except Exception as e:
+            self._logger.error(f"Error reading {data_path=!s}")
+
+
     # On new message creation/send handling
     async def on_message(self, message: discord.Message):
         """
@@ -267,10 +310,7 @@ class DiscordBot(commands.Bot):
             # do nothing and end the event.
             return
         
-        self._logger.info(
-            f"Message from {str(message.author.name)} at {str(message.created_at)}"
-        )
-        
+        # using regular expressions to find all words in message
         self._words_in_msg = set(re.findall(r"\b\w+\b", message.content.lower()))
         
         # getting user and guild specific ID's to use as keys.
