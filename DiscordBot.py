@@ -32,7 +32,7 @@ class DiscordBot(commands.Bot):
         
         self._channels = channels
         self._easter_egg_count = 0
-        self._easter_egg_word = config.settings.setdefault("EASTER_EGG_WORD", "Fourier")
+        self._easter_egg_word = config.settings.setdefault("EASTER_EGG_WORD", "")
         
         
         self._words = config.settings.setdefault("WORDS", {})
@@ -134,9 +134,9 @@ class DiscordBot(commands.Bot):
                 if args != "": 
                     word_set = set(re.findall(r"\b\w+\b", args)) 
             else:
-                word_set = set(re.findall(r"\b\w+\b", message.content.lower()))
+                word_set = set(re.findall(r"\b\w+\b", str(message.content.lower())))
         except Exception as e:
-            word_set = set(re.findall(r"\b\w+\b", message.content.lower()))
+            word_set = set(re.findall(r"\b\w+\b", str(message.content.lower())))
         
         return func, word_set
 
@@ -168,8 +168,11 @@ class DiscordBot(commands.Bot):
 
 
     def easter_egg(self, word_set):
-        if self._easter_egg_word in word_set:
-            if self._easter_egg_count == 3:
+        self._logger.debug(f"started easter_egg")
+        if self._easter_egg_word in list(word_set):
+            self._logger.debug(f"{self._easter_egg_word} in {list(word_set)!r}" )
+            if self._easter_egg_count == 2:
+                self._logger.debug(f"{self._easter_egg_count =!s}")
                 self._easter_egg_count = 0
                 self._logger.info("Bot easter egg triggerd")
                 return True, f"I'm the ghost with the most, babe."
@@ -230,7 +233,7 @@ class DiscordBot(commands.Bot):
             
         except Exception as e:
             self._logger.error(f"Error with hydration: {e!r}")
-        self._logger.debug(f"END of hydration_reminder function. Exception caught. Error on previous line.")
+        self._logger.debug(f"END of hydration_reminder function.")
         return ""
 
 
