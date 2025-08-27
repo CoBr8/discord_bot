@@ -8,7 +8,6 @@ from pathlib import Path
 from datetime import datetime, timedelta
 
 import config
-from AutoDict import AutoDict
 
 
 class DiscordBot(commands.Bot):
@@ -287,7 +286,7 @@ class DiscordBot(commands.Bot):
                     self._logger.debug(f"converted file to Python 'JSON'")
                 else:
                     self._logger.debug(f"File empty, creating dict")
-                    json_data = AutoDict()
+                    json_data = {}
                 
                 date = str(datetime.now().strftime("%Y-%m-%d"))
                 author_id = str(message.author.id)
