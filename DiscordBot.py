@@ -243,16 +243,6 @@ class DiscordBot(commands.Bot):
             return f'Hello World!'
         except Exception as e:
             self._logger.error(f"Error sending hello message: {e}")
-
-
-    def check_words(self, word_set:set):
-        self._logger.debug(f"check_words config 'ban': {set(config.settings.setdefault("BAN", []))}")
-        self._logger.debug(f"check_words word_set: {word_set}")
-        conditional_set = set(config.settings.setdefault("BAN", [])) & set(word_set)
-        self._logger.debug(f"check_words set intersection: {conditional_set}")
-        if conditional_set:
-            return True, f"Where's my bike?"
-        return False, ""            
     
     
     def message_json(self, message:discord.Message):
@@ -361,13 +351,7 @@ class DiscordBot(commands.Bot):
                         await message.reply(config.settings.get("DIRECT_MESSAGE","").get("NORMAL"))
                     
             func, word_set = self.split_message(message)
-            
-            ban, response = self.check_words(self._words_in_msg)
-            
-            if ban:
-                await message.delete()
-                await message.channel.send(response)
-                
+
             egg, text = self.easter_egg(word_set=word_set)
             
             if egg:
