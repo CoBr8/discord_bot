@@ -77,6 +77,9 @@ class DiscordBot(commands.Bot):
     def get_owner(self):
         return self._bot_owner
 
+
+    def get_random_words(self):
+        return config.settings.get("SAD_MSGS", [])
   
     # Persistence
     def load_progress(self):
@@ -303,6 +306,22 @@ class DiscordBot(commands.Bot):
                 self._logger.error(f"Unknown error: {e}")
             
 
+     # Random messages
+    
+    
+    def random_message(self):
+        self._logger.debug(f"start random_message")
+        try:
+            if random.randint(0, 84) == 42:
+                msg = random.choice(config.settings.setdefault("SAD_MSGS", []))
+                self._logger.info(f"Bot sent random message: {msg}")
+                self._logger.debug(f"Attempting to return {msg!r} in random_message")
+                return msg
+        except Exception as e:
+            self._logger.error(f"Error in random_message: {e}")
+        self._logger.debug(f"End random_message; did not return message.")
+
+
     # On new message creation/send handling
     async def on_message(self, message: discord.Message):
         """
@@ -311,37 +330,41 @@ class DiscordBot(commands.Bot):
         desc:
             When the guild receives a message this method deals with it
         """
-        # log messages
-        self.message_json(message=message)
-        
-        # check whether a bot or system has sent the message.
-        if message.author.bot or message.author.system:
-            # do nothing and end the event.
-            return
-        
-        # using regular expressions to find all words in message
-        self._words_in_msg = set(re.findall(r"\b\w+\b", message.content.lower()))
-        
-        # getting user and guild specific ID's to use as keys.
-        user_id = str(message.author.id)
-        guild_id = str(message.guild.id) if message.guild is not None else "guild"
-            
         try:
+            # check whether a bot or system has sent the message.
+            if message.author.bot or message.author.system:
+                # do nothing and end the event.
+                return
+            
+            # log messages
+            self.message_json(message=message)
+            
+            # using regular expressions to find all words in message
+            self._words_in_msg = set(re.findall(r"\b\w+\b", message.content.lower()))
+            
+            # getting user and guild specific ID's to use as keys.
+            user_id = str(message.author.id)
+            guild_id = str(message.guild.id) if message.guild is not None else "guild"
+            
             # random message response
-            await self.random_message(message)
+            rand_msg =  self.random_message()
+            if rand_msg:
+                await message.channel.send(rand_msg)
             
             # check if it times for a hydration reminder
             hydrate_message = self.hydration_reminder()
             if hydrate_message: # if "non-empty" object
                 # send a message to the main channel to remind folks to hydrate. 
                 await self.send_message(response=hydrate_message, channel="Main")
-        
+
             # check if Bot is mentioned: 
             if self.user.mentioned_in(message): # type: ignore
                 # if everyone is mentioned we don't need a bot responding. 
-                if "everyone" in message.mentions:
+                if message.mention_everyone:
                     # log everyone mention event.
-                    self._logger.info(f"Everyone mentioned: {message.author.name =!s}")
+                    self._logger.info(f"Everyone mentioned by {message.author.name!s}")
+                elif "@here" in message.content:
+                    self._logger.info(f"@Here mentioned by {message.author.name!s}")
                 else:
                     # if swearing at bot, swear back.
                     if "fuck you" in message.content.lower(): 
@@ -357,12 +380,12 @@ class DiscordBot(commands.Bot):
             if egg:
                 await self.send_message(response=text)
             
-            if message.channel.id == self._channels["Botting"]:
-                
+            if message.channel.id == self._channels["Botting"]:    
                 self._guild_progress = self._progress.setdefault(
                     guild_id,
                     {"guessed": [], "attempts": [], "themes": {}}
                 )
+                
                 self._user_progress = self._progress.setdefault(
                     user_id, 
                     {"guessed": [], "attempts": [], "themes": {}}
