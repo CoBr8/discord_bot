@@ -389,20 +389,6 @@ class DiscordBot(commands.Bot):
             self._logger.error(f"Error in on_message: {e}")
 
 
-    # Random messages
-    async def random_message(self, message):
-        try:
-            if random.randint(0, 84) == 42:
-                msg = random.choice(config.settings.setdefault("SAD_MSGS", []))
-                self._logger.info(f"Bot sent random message: {msg}")
-                try:
-                    await message.channel.send(msg)
-                except Exception as e:
-                    self._logger.error(f"Error sending random message: {e}")
-        except Exception as e:
-            self._logger.error(f"Error in random_message: {e}")
-
-
     # Message sender
     async def send_message(self, response=None, channel="Botting"):
         if response:
