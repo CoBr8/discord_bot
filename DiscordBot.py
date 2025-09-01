@@ -355,7 +355,7 @@ class DiscordBot(commands.Bot):
             hydrate_message = self.hydration_reminder()
             if hydrate_message: # if "non-empty" object
                 # send a message to the main channel to remind folks to hydrate. 
-                await self.send_message(response=hydrate_message, channel="Main")
+                await self.send_message(response=hydrate_message)
 
             # check if Bot is mentioned: 
             if self.user.mentioned_in(message): # type: ignore
